@@ -1,6 +1,8 @@
 <script lang="ts">
+	import CarInfo from '$lib/comps/CarInfo.svelte';
 	import Player from '$lib/comps/Player.svelte';
 	import { PlayerState } from '$lib/player.svelte';
+	import { onMount } from 'svelte';
 
 	const tabs = [
 		{ label: 'Home', icon: 'ph-house' },
@@ -10,10 +12,49 @@
 		{ label: 'Settings', icon: 'ph-gear-six' }
 	];
 
+	let ws: undefined | WebSocket = undefined;
+	onMount(() => {
+		let socket = new WebSocket('ws://localhost:5273');
+		ws = socket;
+
+		socket.onopen = () => {
+			isConnected = true;
+			console.log('Connected to SimHub WebSocket!');
+		};
+
+		// 3. Handle incoming telemetry ticks
+		socket.onmessage = (event) => {
+			try {
+				data = JSON.parse(event.data);
+			} catch (err) {
+				console.error('Failed to parse SimHub data:', err);
+			}
+		};
+
+		socket.onerror = (error) => {
+			console.error('SimHub WebSocket Error:', error);
+		};
+
+		socket.onclose = () => {
+			isConnected = false;
+			console.log('Disconnected from SimHub');
+		};
+
+		return () => {
+			socket.close();
+			ws = undefined;
+		};
+	});
+
+	let isConnected = $state(false);
+	let data: Record<string, any> = $state({});
+
 	let musicApp: 'YouTube' | 'Spotify' = 'Spotify';
 
 	let currentTab = $state(0);
 	let playerState = $state(new PlayerState());
+
+	let availableGameMaps = ['FH6', 'ETS'];
 </script>
 
 <main>
@@ -26,8 +67,26 @@
 	</div>
 	{#if currentTab == 0}
 		<div class="home-content">
-			<div class="map"></div>
-			<div class="map"></div>
+			<CarInfo {data} />
+			{#if availableGameMaps.includes(data.GameName)}
+				<div class="map">
+					{#if data.GameName == 'ETS'}
+						<iframe
+							src="http://localhost:8888/maps/map.html?v=1784127038753#norefresh"
+							title="map"
+							style="pointer-events: auto;"
+						></iframe>
+					{/if}
+					{#if data.GameName == 'FH6'}
+						<iframe
+							src="https://wand.com/maps/forza-horizon-6/japan"
+							allow="clipboard-write"
+							title="map"
+							style="pointer-events: auto;"
+						></iframe>
+					{/if}
+				</div>
+			{/if}
 			{#if playerState.metadata.title}
 				<Player {playerState} />
 			{/if}
@@ -37,10 +96,19 @@
 			<h1>{musicApp}</h1>
 			<button onclick={() => playerState.playTrack('6186PJhauYc')}>Play</button>
 		</div>
+	{:else if currentTab == 4}
+		<div class="test" style="height: 100vh; flex: 1; overflox-y: scroll;">
+			<pre>{JSON.stringify(data, null, '  ')}</pre>
+		</div>
 	{/if}
 </main>
 
 <style>
+	iframe {
+		width: 100%;
+		height: 100%;
+		border: none;
+	}
 	main {
 		position: fixed;
 		inset: 0;
@@ -86,5 +154,6 @@
 		flex: 1;
 		background-color: rgba(255, 255, 255, 0.05);
 		border-radius: 32px;
+		overflow: hidden;
 	}
 </style>
