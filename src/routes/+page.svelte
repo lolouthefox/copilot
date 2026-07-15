@@ -6,6 +6,3 @@
 </script>
 
 <YouTubePlayer bind:playerState />
-
-<button onclick={() => playerState.togglePlay()}>{playerState.isPlaying ? 'Pause' : 'Play'}</button>
-<button onclick={() => playerState.playTrack('2vATGqooQMM')}>Play</button>
