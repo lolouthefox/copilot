@@ -85,7 +85,7 @@
 				playerState.metadata = {
 					title: meta.title,
 					artist: meta.author_name,
-					thumbnail: `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${playerState.currentTrackId}&format=json`
+					thumbnail: `https://img.youtube.com/vi/${playerState.currentTrackId}/maxresdefault.jpg`
 				};
 			});
 
@@ -121,4 +121,6 @@
 	}
 </script>
 
-<div id="hidden-yt-player" style="display: none;"></div>
+{#key playerState.currentTrackId}
+	<div id="hidden-yt-player" style="display: none;"></div>
+{/key}
