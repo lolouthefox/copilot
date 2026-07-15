@@ -35,6 +35,7 @@
 		"vite": "^8.0.16"
 	},
 	"dependencies": {
+		"@phosphor-icons/web": "^2.1.2",
 		"@tidal-music/auth": "^1.6.1",
 		"@tidal-music/event-producer": "^2.4.2",
 		"@tidal-music/player-web-components": "^0.3.0"
